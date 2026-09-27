@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Advisor Bot - Live Interactive Preview (₹ INR & $ USD)</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/chatbot.css">
+    <style>
+        .preview-banner {
+            background: linear-gradient(90deg, #0f172a, #1e3a8a);
+            color: #ffffff;
+            padding: 10px 24px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .currency-switch-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .currency-switch-btn.active {
+            background: #10b981;
+            border-color: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        }
+        .tab-section {
+            display: none;
+        }
+        .tab-section.active {
+            display: block;
+        }
+        .converter-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Live Demo Bar with Currency Switcher -->
+    <div class="preview-banner">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="background: #10b981; width: 10px; height: 10px; border-radius: 50%; display: inline-block;"></span>
+            <strong>Personal Finance Advisor Bot</strong> — Interactive Preview
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="color: #cbd5e1; font-size: 0.82rem;">Select Currency:</span>
+            <button type="button" class="currency-switch-btn active" id="btnINR" onclick="setCurrency('INR')">
+                🇮🇳 ₹ INR (Rupees)
+            </button>
+            <button type="button" class="currency-switch-btn" id="btnUSD" onclick="setCurrency('USD')">
+                🇺🇸 $ USD (Dollar)
+            </button>
+        </div>
+    </div>
+
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo-icon">💰</div>
+                <div class="sidebar-logo-text">FinanceAdvisor</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <span class="nav-label">Navigation</span>
+                
+                <a href="javascript:void(0)" class="nav-link active" onclick="switchTab('dashboard', this)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-link" onclick="switchTab('income', this)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Income</span>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-link" onclick="switchTab('expenses', this)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    <span>Expenses</span>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-link" onclick="switchTab('budget', this)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>Budget Planner</span>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-link" onclick="switchTab('savings', this)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span>Savings Goals</span>
+                </a>
+
+                <span class="nav-label" style="margin-top: 14px;">Smart Intelligence</span>
+
+                <a href="javascript:void(0)" class="nav-link" onclick="switchTab('chatbot', this)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                    <span>AI Chatbot</span>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-link" onclick="switchTab('reports', this)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Monthly Reports</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="javascript:void(0)" class="nav-link" onclick="switchTab('landing', this)" style="color: #60a5fa;">
+                    🌐 View Landing Page
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <div class="main-wrapper">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-title">
+                    <h1 id="topbarTitle">Financial Dashboard</h1>
+                    <p id="topbarSubtitle">Overview of your real-time financial health in <span class="curr-label">₹ INR (Rupees)</span></p>
+                </div>
+                <div class="topbar-actions">
+                    <div class="user-pill">
+                        <div class="user-avatar">A</div>
+                        <span class="user-name">Alex Morgan</span>
+                    </div>
+                </div>
+            </header>
+
+            <main class="content-body">
+
+                <!-- Real-Time Dollar to Rupee Quick Converter Calculator -->
+                <div class="converter-box">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">💱</span>
+                        <div>
+                            <strong style="color: var(--navy-900); font-size: 0.95rem;">Instant Currency Converter (USD ⇄ INR)</strong>
+                            <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Current Exchange Rate: 1 USD ≈ ₹88.50 INR</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" id="convertInput" value="100" style="width: 100px; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem;" oninput="calcConversion()">
+                        <span style="font-weight: 600; font-size: 0.9rem;">USD ($) = </span>
+                        <span id="convertResult" style="font-weight: 700; color: var(--green-600); font-size: 1.05rem; padding: 4px 8px; background: white; border-radius: 6px; border: 1px solid var(--border-color);">₹8,850.00 INR</span>
+                    </div>
+                </div>
+
+                <!-- TAB 1: DASHBOARD -->
+                <div id="tab-dashboard" class="tab-section active">
+                    <!-- AI Callout Banner -->
+                    <div style="background: linear-gradient(135deg, #0f172a, #1e3a8a); color: white; border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div style="width: 48px; height: 48px; border-radius: var(--radius-md); background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                💡
+                            </div>
+                            <div>
+                                <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 4px;">Smart Financial Insight for Alex</h3>
+                                <p style="font-size: 0.88rem; color: #cbd5e1; max-width: 650px;" id="aiDashboardSummary">
+                                    You have saved <strong class="c-val-balance">₹42,500.00</strong> this month (53.1% savings rate). Your highest spending category is <strong class="c-top-cat">Rent & Housing (₹22,000.00)</strong> followed by <strong class="c-second-cat">Food & Dining (₹8,500.00)</strong>.
+                                </p>
+                            </div>
+                        </div>
+                        <button class="btn btn-success" onclick="switchTab('chatbot', document.querySelectorAll('.nav-link')[5])">
+                            Chat with Advisor →
+                        </button>
+                    </div>
+
+                    <!-- 4 Live Stat Cards -->
+                    <div class="grid-4">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Monthly Income</span>
+                                <div class="stat-value c-val-income" style="color: var(--green-600);">₹80,000.00</div>
+                                <div class="stat-subtext">3 income records</div>
+                            </div>
+                            <div class="stat-icon green">💰</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Total Expenses</span>
+                                <div class="stat-value c-val-expense" style="color: var(--red-500);">₹37,500.00</div>
+                                <div class="stat-subtext">12 expenses logged</div>
+                            </div>
+                            <div class="stat-icon red">💸</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Available Balance</span>
+                                <div class="stat-value c-val-balance" style="color: var(--blue-600);">₹42,500.00</div>
+                                <div class="stat-subtext">Savings Rate: <strong>53.1%</strong></div>
+                            </div>
+                            <div class="stat-icon blue">🛡️</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Total Savings</span>
+                                <div class="stat-value c-val-savings" style="color: var(--navy-900);">₹1,85,000.00</div>
+                                <div class="stat-subtext">Target: <span class="c-val-target">₹3,00,000.00</span></div>
+                            </div>
+                            <div class="stat-icon amber">🏦</div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Charts Section -->
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">Spending by Category</h2>
+                                    <p class="card-subtitle">Current month expenditure breakdown</p>
+                                </div>
+                            </div>
+                            <div class="card-body" style="height: 320px; display: flex; align-items: center; justify-content: center;">
+                                <canvas id="previewCategoryChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">Income vs Expenses Trend</h2>
+                                    <p class="card-subtitle">Last 6 months cashflow</p>
+                                </div>
+                            </div>
+                            <div class="card-body" style="height: 320px;">
+                                <canvas id="previewTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: INCOME -->
+                <div id="tab-income" class="tab-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Income Records</h2>
+                            <button class="btn btn-success btn-sm" onclick="alert('In the live Flask server, this opens the Add Income modal.')">+ Add Income</button>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th><th>Source</th><th>Description</th><th style="text-align: right;">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Sep 01, 2026</td><td><span class="badge badge-primary">Salary</span></td><td>Monthly Primary Paycheck</td><td style="text-align: right;" class="amount-positive inc-row-1">+₹65,000.00</td></tr>
+                                    <tr><td>Sep 10, 2026</td><td><span class="badge badge-primary">Freelancing</span></td><td>UI/UX Consulting Project</td><td style="text-align: right;" class="amount-positive inc-row-2">+₹12,000.00</td></tr>
+                                    <tr><td>Sep 15, 2026</td><td><span class="badge badge-primary">Investments</span></td><td>Mutual Fund / Dividend Payout</td><td style="text-align: right;" class="amount-positive inc-row-3">+₹3,000.00</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: EXPENSES -->
+                <div id="tab-expenses" class="tab-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Expense Records</h2>
+                            <button class="btn btn-danger btn-sm" onclick="alert('In the live Flask server, this opens the Record Expense modal.')">- Record Expense</button>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr><th>Date</th><th>Category</th><th>Description</th><th style="text-align: right;">Amount</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Sep 02, 2026</td><td><span class="badge badge-neutral">Rent & Housing</span></td><td>House Rent</td><td style="text-align: right;" class="amount-negative exp-row-1">-₹22,000.00</td></tr>
+                                    <tr><td>Sep 03, 2026</td><td><span class="badge badge-neutral">Food & Dining</span></td><td>Supermarket Groceries</td><td style="text-align: right;" class="amount-negative exp-row-2">-₹4,500.00</td></tr>
+                                    <tr><td>Sep 05, 2026</td><td><span class="badge badge-neutral">Utilities & Bills</span></td><td>Electricity & Broadband Internet</td><td style="text-align: right;" class="amount-negative exp-row-3">-₹2,500.00</td></tr>
+                                    <tr><td>Sep 06, 2026</td><td><span class="badge badge-neutral">Transportation</span></td><td>Metro Pass & Fuel</td><td style="text-align: right;" class="amount-negative exp-row-4">-₹3,000.00</td></tr>
+                                    <tr><td>Sep 12, 2026</td><td><span class="badge badge-neutral">Education</span></td><td>Python & AI Course</td><td style="text-align: right;" class="amount-negative exp-row-5">-₹2,500.00</td></tr>
+                                    <tr><td>Sep 16, 2026</td><td><span class="badge badge-neutral">Entertainment</span></td><td>Weekend Movies & Dining Out</td><td style="text-align: right;" class="amount-negative exp-row-6">-₹3,000.00</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: BUDGET -->
+                <div id="tab-budget" class="tab-section">
+                    <div class="grid-2">
+                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; background: white;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <strong>Food & Dining</strong>
+                                <span class="badge badge-warning b-badge-1">₹1,500.00 left (85% used)</span>
+                            </div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill warning" style="width: 85%;"></div></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 6px;">
+                                <span class="b-spent-1">Spent: ₹8,500.00</span><span class="b-limit-1">Limit: ₹10,000.00</span>
+                            </div>
+                        </div>
+
+                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; background: white;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <strong>Rent & Housing</strong>
+                                <span class="badge badge-success b-badge-2">₹1,000.00 left (95.6% used)</span>
+                            </div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill success" style="width: 95.6%;"></div></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 6px;">
+                                <span class="b-spent-2">Spent: ₹22,000.00</span><span class="b-limit-2">Limit: ₹23,000.00</span>
+                            </div>
+                        </div>
+
+                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; background: white;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <strong>Transportation</strong>
+                                <span class="badge badge-success b-badge-3">₹1,000.00 left (75% used)</span>
+                            </div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill success" style="width: 75%;"></div></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 6px;">
+                                <span class="b-spent-3">Spent: ₹3,000.00</span><span class="b-limit-3">Limit: ₹4,000.00</span>
+                            </div>
+                        </div>
+
+                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; background: white;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <strong>Entertainment</strong>
+                                <span class="badge badge-success b-badge-4">₹1,000.00 left on track</span>
+                            </div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill success" style="width: 75%;"></div></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 6px;">
+                                <span class="b-spent-4">Spent: ₹3,000.00</span><span class="b-limit-4">Limit: ₹4,000.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: SAVINGS -->
+                <div id="tab-savings" class="tab-section">
+                    <div class="grid-3">
+                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; background: white;">
+                            <span class="badge badge-primary">Safety Net</span>
+                            <h3 style="margin: 8px 0; font-size: 1.1rem;">Emergency Fund (6 Months)</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">High-Yield Savings / Fixed Deposit.</p>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill success" style="width: 70%;"></div></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 8px;">
+                                <span class="s-saved-1">Saved: ₹1,05,000.00</span>
+                                <span class="s-target-1">Target: ₹1,50,000.00 (70%)</span>
+                            </div>
+                        </div>
+
+                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; background: white;">
+                            <span class="badge badge-primary">Travel</span>
+                            <h3 style="margin: 8px 0; font-size: 1.1rem;">Family Vacation</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Flights, hotel, and leisure trip.</p>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill blue" style="width: 50%;"></div></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 8px;">
+                                <span class="s-saved-2">Saved: ₹40,000.00</span>
+                                <span class="s-target-2">Target: ₹80,000.00 (50%)</span>
+                            </div>
+                        </div>
+
+                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; background: white;">
+                            <span class="badge badge-primary">Gadgets</span>
+                            <h3 style="margin: 8px 0; font-size: 1.1rem;">New Laptop</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">For coding and freelance projects.</p>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill blue" style="width: 57%;"></div></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 8px;">
+                                <span class="s-saved-3">Saved: ₹40,000.00</span>
+                                <span class="s-target-3">Target: ₹70,000.00 (57%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 6: CHATBOT -->
+                <div id="tab-chatbot" class="tab-section">
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            <div class="chat-bot-info">
+                                <div class="chat-bot-avatar">🤖</div>
+                                <div class="chat-bot-details">
+                                    <h3>Personal Finance Advisor Bot</h3>
+                                    <p id="chatBotSubtitle">Analyzing your finances in ₹ Indian Rupees (Income: ₹80,000, Expenses: ₹37,500)</p>
+                                </div>
+                            </div>
+                            <span class="chat-status-badge live">
+                                <span class="chat-status-dot"></span>
+                                Gemini AI Simulated
+                            </span>
+                        </div>
+
+                        <div class="chat-suggestions">
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--navy-900);">Quick Prompts:</span>
+                            <button type="button" class="suggestion-chip" onclick="simulateChat('Suggest a 50/30/20 budget plan for me')">
+                                📐 50/30/20 Budget Plan
+                            </button>
+                            <button type="button" class="suggestion-chip" onclick="simulateChat('Where can I cut expenses?')">
+                                ✂️ Where Can I Cut Expenses?
+                            </button>
+                            <button type="button" class="suggestion-chip" onclick="simulateChat('How to build an emergency fund?')">
+                                🛡️ Emergency Fund Plan
+                            </button>
+                        </div>
+
+                        <div class="chat-messages" id="previewChatMessages">
+                            <div class="chat-message-row bot">
+                                <div class="message-avatar">🤖</div>
+                                <div>
+                                    <div class="message-bubble" id="chatInitialGreeting">
+                                        <p><strong>Namaste Alex! 👋</strong></p>
+                                        <p>I have inspected your real monthly financial records:</p>
+                                        <ul>
+                                            <li>Total Monthly Income: <strong class="c-val-income">₹80,000.00</strong></li>
+                                            <li>Total Monthly Expenses: <strong class="c-val-expense">₹37,500.00</strong></li>
+                                            <li>Available Net Balance: <strong class="c-val-balance">₹42,500.00</strong> (53.1% savings rate)</li>
+                                        </ul>
+                                        <p>Click any quick prompt above or ask me questions about budgeting, emergency funds, or expense reduction!</p>
+                                    </div>
+                                    <span class="message-timestamp">Just now</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-footer">
+                            <form class="chat-input-form" onsubmit="event.preventDefault(); simulateChat(document.getElementById('mockInput').value);">
+                                <input type="text" id="mockInput" class="chat-input" placeholder="Ask about budgets, investments, or saving tips..." required>
+                                <button type="submit" class="chat-send-btn">
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 7: REPORTS -->
+                <div id="tab-reports" class="tab-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title">September 2026 Financial Statement</h2>
+                                <p class="card-subtitle">Monthly aggregate performance</p>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="downloadSampleCSV()">📥 Download CSV Report</button>
+                        </div>
+                        <div class="card-body">
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
+                                Net Savings: <strong class="c-val-balance">₹42,500.00</strong> | Savings Rate: <strong>53.1%</strong> | Total Transactions: <strong>15</strong>
+                            </p>
+                            <button class="btn btn-outline" onclick="downloadSampleCSV()">📄 Download September Report CSV</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 8: LANDING PAGE VIEW -->
+                <div id="tab-landing" class="tab-section">
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <span class="hero-badge">🤖 Powered by Gemini AI • 100% Private</span>
+                        <h1 class="hero-title" style="margin-top: 14px;">Smart, Beginner-Friendly Financial Management with <span>AI Advisory</span></h1>
+                        <p class="hero-desc">Take control of your finances, track income & expenses in Rupees (₹) or Dollars ($), plan monthly category budgets, and get customized advice from Gemini AI.</p>
+                        <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                            <button class="btn btn-success" onclick="switchTab('dashboard', document.querySelector('.nav-link'))">Open App Dashboard</button>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let currentCurrency = 'INR';
+        const USD_TO_INR = 88.50;
+
+        function calcConversion() {
+            const usd = parseFloat(document.getElementById('convertInput').value) || 0;
+            const inr = usd * USD_TO_INR;
+            document.getElementById('convertResult').textContent = '₹' + inr.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' INR';
+        }
+
+        const dataINR = {
+            income: '₹80,000.00',
+            expense: '₹37,500.00',
+            balance: '₹42,500.00',
+            savings: '₹1,85,000.00',
+            target: '₹3,00,000.00',
+            topCat: 'Rent & Housing (₹22,000.00)',
+            secondCat: 'Food & Dining (₹8,500.00)',
+            incRows: ['+₹65,000.00', '+₹12,000.00', '+₹3,000.00'],
+            expRows: ['-₹22,000.00', '-₹4,500.00', '-₹2,500.00', '-₹3,000.00', '-₹2,500.00', '-₹3,000.00'],
+            budgets: [
+                { spent: 'Spent: ₹8,500.00', limit: 'Limit: ₹10,000.00', badge: '₹1,500.00 left (85% used)' },
+                { spent: 'Spent: ₹22,000.00', limit: 'Limit: ₹23,000.00', badge: '₹1,000.00 left (95.6% used)' },
+                { spent: 'Spent: ₹3,000.00', limit: 'Limit: ₹4,000.00', badge: '₹1,000.00 left (75% used)' },
+                { spent: 'Spent: ₹3,000.00', limit: 'Limit: ₹4,000.00', badge: '₹1,000.00 left on track' }
+            ],
+            savingsGoals: [
+                { saved: 'Saved: ₹1,05,000.00', target: 'Target: ₹1,50,000.00 (70%)' },
+                { saved: 'Saved: ₹40,000.00', target: 'Target: ₹80,000.00 (50%)' },
+                { saved: 'Saved: ₹40,000.00', target: 'Target: ₹70,000.00 (57%)' }
+            ]
+        };
+
+        const dataUSD = {
+            income: '$5,570.00',
+            expense: '$2,645.00',
+            balance: '$2,925.00',
+            savings: '$11,250.00',
+            target: '$17,700.00',
+            topCat: 'Rent & Housing ($1,450.00)',
+            secondCat: 'Food & Dining ($520.00)',
+            incRows: ['+$4,500.00', '+$850.00', '+$220.00'],
+            expRows: ['-$1,450.00', '-$240.00', '-$165.00', '-$120.00', '-$120.00', '-$125.00'],
+            budgets: [
+                { spent: 'Spent: $520.00', limit: 'Limit: $600.00', badge: '$80.00 left (86.7% used)' },
+                { spent: 'Spent: $1,450.00', limit: 'Limit: $1,500.00', badge: '$50.00 left (96.7% used)' },
+                { spent: 'Spent: $185.00', limit: 'Limit: $250.00', badge: '$65.00 left (74.0% used)' },
+                { spent: 'Spent: $125.00', limit: 'Limit: $150.00', badge: '$25.00 left on track' }
+            ],
+            savingsGoals: [
+                { saved: 'Saved: $7,800.00', target: 'Target: $12,000.00 (65%)' },
+                { saved: 'Saved: $1,950.00', target: 'Target: $3,500.00 (55.7%)' },
+                { saved: 'Saved: $1,500.00', target: 'Target: $2,200.00 (68.2%)' }
+            ]
+        };
+
+        function setCurrency(curr) {
+            currentCurrency = curr;
+            document.getElementById('btnINR').classList.toggle('active', curr === 'INR');
+            document.getElementById('btnUSD').classList.toggle('active', curr === 'USD');
+
+            const d = curr === 'INR' ? dataINR : dataUSD;
+            document.querySelector('.curr-label').textContent = curr === 'INR' ? '₹ INR (Rupees)' : '$ USD (Dollar)';
+
+            // Update stat values
+            document.querySelectorAll('.c-val-income').forEach(el => el.textContent = d.income);
+            document.querySelectorAll('.c-val-expense').forEach(el => el.textContent = d.expense);
+            document.querySelectorAll('.c-val-balance').forEach(el => el.textContent = d.balance);
+            document.querySelectorAll('.c-val-savings').forEach(el => el.textContent = d.savings);
+            document.querySelectorAll('.c-val-target').forEach(el => el.textContent = d.target);
+            document.querySelectorAll('.c-top-cat').forEach(el => el.textContent = d.topCat);
+            document.querySelectorAll('.c-second-cat').forEach(el => el.textContent = d.secondCat);
+
+            // Incomes
+            d.incRows.forEach((val, i) => {
+                const el = document.querySelector('.inc-row-' + (i + 1));
+                if (el) el.textContent = val;
+            });
+
+            // Expenses
+            d.expRows.forEach((val, i) => {
+                const el = document.querySelector('.exp-row-' + (i + 1));
+                if (el) el.textContent = val;
+            });
+
+            // Budgets
+            d.budgets.forEach((b, i) => {
+                const spentEl = document.querySelector('.b-spent-' + (i + 1));
+                const limitEl = document.querySelector('.b-limit-' + (i + 1));
+                const badgeEl = document.querySelector('.b-badge-' + (i + 1));
+                if (spentEl) spentEl.textContent = b.spent;
+                if (limitEl) limitEl.textContent = b.limit;
+                if (badgeEl) badgeEl.textContent = b.badge;
+            });
+
+            // Savings
+            d.savingsGoals.forEach((s, i) => {
+                const savedEl = document.querySelector('.s-saved-' + (i + 1));
+                const targetEl = document.querySelector('.s-target-' + (i + 1));
+                if (savedEl) savedEl.textContent = s.saved;
+                if (targetEl) targetEl.textContent = s.target;
+            });
+
+            // Chatbot subtitle
+            document.getElementById('chatBotSubtitle').textContent = curr === 'INR' 
+                ? 'Analyzing your finances in ₹ Indian Rupees (Income: ₹80,000, Expenses: ₹37,500)'
+                : 'Analyzing your finances in $ USD (Income: $5,570, Expenses: $2,645)';
+        }
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            if (el) el.classList.add('active');
+
+            const titleMap = {
+                'dashboard': 'Financial Dashboard',
+                'income': 'Income Records',
+                'expenses': 'Expense Records',
+                'budget': 'Monthly Budget Planner',
+                'savings': 'Savings Goals Tracker',
+                'chatbot': 'AI Financial Advisor',
+                'reports': 'Monthly Reports & CSV Export',
+                'landing': 'Landing Page'
+            };
+            document.getElementById('topbarTitle').textContent = titleMap[tabId] || 'Financial Dashboard';
+        }
+
+        // Charts
+        window.addEventListener('load', () => {
+            const catCtx = document.getElementById('previewCategoryChart');
+            if (catCtx) {
+                new Chart(catCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Rent & Housing', 'Food & Dining', 'Transportation', 'Utilities', 'Education', 'Entertainment'],
+                        datasets: [{
+                            data: [22000, 8500, 3000, 2500, 2500, 3000],
+                            backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '68%' }
+                });
+            }
+
+            const trendCtx = document.getElementById('previewTrendChart');
+            if (trendCtx) {
+                new Chart(trendCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Apr 2026', 'May 2026', 'Jun 2026', 'Jul 2026', 'Aug 2026', 'Sep 2026'],
+                        datasets: [
+                            { label: 'Income', data: [72000, 75000, 78000, 75000, 80000, 80000], backgroundColor: '#10b981', borderRadius: 4 },
+                            { label: 'Expenses', data: [34000, 36000, 38000, 35000, 37000, 37500], backgroundColor: '#ef4444', borderRadius: 4 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        });
+
+        // Chatbot simulation in Rupees & Dollars
+        function simulateChat(promptText) {
+            const container = document.getElementById('previewChatMessages');
+            document.getElementById('mockInput').value = '';
+
+            // User message
+            const userRow = document.createElement('div');
+            userRow.className = 'chat-message-row user';
+            userRow.innerHTML = `<div class="message-avatar">👤</div><div><div class="message-bubble">${promptText}</div><span class="message-timestamp">Just now</span></div>`;
+            container.appendChild(userRow);
+
+            setTimeout(() => {
+                let botReply = '';
+                const lower = promptText.toLowerCase();
+                const sym = currentCurrency === 'INR' ? '₹' : '$';
+
+                if (lower.includes('50/30/20') || lower.includes('budget')) {
+                    if (currentCurrency === 'INR') {
+                        botReply = `<h3>Personalized 50/30/20 Budget for Your ₹80,000.00 Income</h3>
+                        <ul>
+                            <li><strong>50% Needs (₹40,000.00):</strong> Rent (₹22,000), Utilities (₹2,500), Groceries (₹8,500), Transit (₹3,000). Total: ₹36,000 — <em>Well within safe limits!</em></li>
+                            <li><strong>30% Wants (₹24,000.00):</strong> Entertainment & Shopping (₹6,000 used).</li>
+                            <li><strong>20% Savings (₹16,000.00):</strong> You currently retain <strong>₹42,500.00</strong>, exceeding the 20% minimum target!</li>
+                        </ul>`;
+                    } else {
+                        botReply = `<h3>Personalized 50/30/20 Budget for Your $5,570.00 Income</h3>
+                        <ul>
+                            <li><strong>50% Needs ($2,785.00):</strong> Rent ($1,450), Utilities ($165), Groceries ($520), Transit ($185).</li>
+                            <li><strong>30% Wants ($1,671.00):</strong> Entertainment and Dining.</li>
+                            <li><strong>20% Savings ($1,114.00):</strong> You currently save <strong>$2,925.00</strong>!</li>
+                        </ul>`;
+                    }
+                } else if (lower.includes('cut') || lower.includes('leak')) {
+                    const foodVal = currentCurrency === 'INR' ? '₹8,500.00' : '$520.00';
+                    const saveVal = currentCurrency === 'INR' ? '₹2,500/month' : '$150/month';
+                    botReply = `<h3>Spending Optimization Insights</h3>
+                    <p>Based on your records, your highest flexible cost is <strong>Food & Dining (${foodVal})</strong>.</p>
+                    <ul>
+                        <li>Preparing more meals at home can easily save an estimated <strong>${saveVal}</strong>.</li>
+                        <li>Review recurring subscriptions and entertainment bills to prevent silent budget leaks.</li>
+                    </ul>`;
+                } else {
+                    const surplus = currentCurrency === 'INR' ? '+₹42,500.00' : '+$2,925.00';
+                    const emFund = currentCurrency === 'INR' ? '₹15,000/month' : '$500/month';
+                    botReply = `<h3>Financial Recommendation</h3>
+                    <p>You have a strong monthly cashflow surplus of <strong>${surplus}</strong>.</p>
+                    <p>Priority Advice: Allocate <strong>${emFund}</strong> directly into your <em>Emergency Fund (Fixed Deposit / HYSA)</em> to hit your 6-month buffer sooner!</p>`;
+                }
+
+                const botRow = document.createElement('div');
+                botRow.className = 'chat-message-row bot';
+                botRow.innerHTML = `<div class="message-avatar">🤖</div><div><div class="message-bubble">${botReply}</div><span class="message-timestamp">Just now</span></div>`;
+                container.appendChild(botRow);
+                container.scrollTop = container.scrollHeight;
+            }, 600);
+        }
+
+        // CSV Downloader
+        function downloadSampleCSV() {
+            const sym = currentCurrency === 'INR' ? 'INR' : 'USD';
+            const csvContent = "data:text/csv;charset=utf-8,Type,Category/Source,Amount (" + sym + "),Date,Description\nIncome,Salary,65000.00,2026-09-01,Primary Salary\nIncome,Freelancing,12000.00,2026-09-10,UI/UX Project\nExpense,Rent & Housing,22000.00,2026-09-02,House Rent\nExpense,Food & Dining,4500.00,2026-09-03,Groceries\n";
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "finance_report_09_2026_" + sym + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
